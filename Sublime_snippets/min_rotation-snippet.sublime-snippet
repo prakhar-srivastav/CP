@@ -1,0 +1,19 @@
+<snippet>
+	<content><![CDATA[
+/* find  lexicographically smallest string of s after rotating it */
+//Source:Kactl
+int minRotation(string &s) {
+    int a = 0, N = si(s); s += s;
+    for(ll b=0;b<N;b++) for(ll k =0;k<N;k++) {
+        if (a + k == b || s[a + k] < s[b + k]) { b += max(0ll, k - 1); break; }
+        if (s[a + k] > s[b + k]) { a = b; break; }
+    }
+    return a;
+}
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>min_rotation</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<!-- <scope>source.python</scope> -->
+</snippet>

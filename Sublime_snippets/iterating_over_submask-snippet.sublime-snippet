@@ -1,0 +1,25 @@
+<snippet>
+	<content><![CDATA[
+ /*
+ For example :
+ mask = 101101
+ 
+ sub-masks are: 
+ 001101
+ 101001
+ 000001
+ 001100
+ 101000
+ ... and so on 
+ 
+ */
+ 
+ 
+ for(int i = mask; i > 0; i = (i-1) & mask)
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>iterating_over_submask</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<!-- <scope>source.python</scope> -->
+</snippet>

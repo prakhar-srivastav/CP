@@ -1,0 +1,136 @@
+<snippet>
+	<content><![CDATA[
+/*http://www.apfloat.org/ntt.html*/
+vector<ll> w, w_inv;
+ll inv_2;
+ll power(ll a, ll b, ll m)
+{
+    if (b == 1) return a;
+    ll x = power(a, b / 2, m);
+    x *= x;
+    x %= m;
+    if (b % 2 == 1)
+    {
+        x *= a;
+        x %= m;
+    }
+    return x;
+}
+ll primitive_root(ll m) {
+    if (m == 2) return 1;
+    if (m == 167772161) return 3;
+    if (m == 469762049) return 3;
+    if (m == 754974721) return 11;
+    if (m == 998244353) return 3;
+    vector<ll> divs(20);
+    divs[0] = 2;
+    ll cnt = 1;
+    ll x = (m - 1) / 2;
+    while (x % 2 == 0) x /= 2;
+    for (ll i = 3; i * i <= x; i += 2) {
+        if (x % i == 0) {
+            divs[cnt++] = i;
+            while (x % i == 0) {
+                x /= i;
+            }
+        }
+    }
+    if (x > 1) {
+        divs[cnt++] = x;
+    }
+    for (ll g = 2;; g++) {
+        bool ok = true;
+        for (ll i = 0; i < cnt; i++) {
+            if (power(g, (m - 1) / divs[i], m) == 1) {
+                ok = false;
+                break;
+            }
+        }
+        if (ok) return g;
+    }
+}
+
+void ntt(vector<ll>& a, bool invert, ll& m)
+{
+
+    ll n = a.size();
+    if (n == 1) return;
+
+    vector<ll> a0(n / 2), a1(n / 2);
+    for (ll i = 0; i * 2 < n; i++)
+    {
+        a0[i] = a[i * 2];
+        a1[i] = a[i * 2 + 1];
+    }
+
+    ntt(a0, invert, m);
+    ntt(a1, invert, m);
+    ll num = log2(n);
+    ll w0 = 1;
+    ll wn = invert ? w_inv[num] : w[num];
+    for (ll i = 0; i * 2< n; i++)
+    {
+        a[i] = (a0[i] % m + w0 % m * a1[i] % m) % m;
+        a[i + n / 2] = (a0[i] % m - w0 % m * a1[i] % m + m) % m;
+        if (invert)
+        {
+            a[i] = (a[i] * inv_2) % m;
+            a[i + n / 2] = (a[i + n / 2] * inv_2) % m;
+        }
+        w0 = (w0 * wn) % m;
+    }
+    
+    return;
+}
+
+
+vector<ll> multiply(vector<ll>& a, vector<ll>& b, ll& m)
+{
+
+    ll g = primitive_root(m);
+
+    ll g_inv = power(g, m - 2, m);
+    inv_2 = power(2, m - 2, m);
+
+    vector<ll> fa(a.begin(), a.end());
+    vector<ll> fb(b.begin(), b.end());
+    ll n = 1;
+    while (n < a.size() + b.size())
+    {
+        n *= 2;
+    }
+    fa.resize(n);
+    fb.resize(n);
+   
+
+    ll num = log2(n) ;
+   
+    w.clear();
+    w.resize(num+1);
+    w_inv.clear();
+    w_inv.resize(num+1);
+
+    w[num] = power(g, (m - 1) / n, m);
+    w_inv[num] = power(g_inv, (m - 1) / n, m);
+    for (ll i = num - 1; i >= 1; i--)
+    {
+        w[i] = power(w[i + 1], 2, m);
+        w_inv[i] = power(w_inv[i + 1], 2, m);
+    }
+    ntt(fa, false, m);
+    ntt(fb, false, m);
+    for (ll i = 0; i < fa.size(); i++)
+    {
+        fa[i] *= fb[i];
+        fa[i] %= m;
+    }
+    ntt(fa, true, m);
+    return fa;
+
+}
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>ntt</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<!-- <scope>source.python</scope> -->
+</snippet>

@@ -1,0 +1,122 @@
+<snippet>
+	<content><![CDATA[
+
+#define fore(i, l, r) for(int i = int(l); i < int(r); i++)
+#define sz(a) int((a).size())
+const int LOGN = 18;
+const int MOD = 998244353;
+ll g = 3;
+
+ll mul(ll a, ll b) {
+  return ((a * b) % MOD);
+}
+ll norm(ll a) {
+  while(a >= MOD) a -= MOD;
+  while(a < 0) a += MOD;
+  return a;
+}
+ll binPow (ll a, ll k) {
+  ll ans = 1;
+  for (; k > 0; k >>= 1) {
+    if (k & 1)
+      ans = mul(ans, a);
+    a = mul(a, a);
+  }
+  return ans;
+}
+ll inv(ll a) {
+  return binPow(a, MOD - 2);
+}
+
+vector<ll> w[LOGN], rv;
+bool precalced = false;
+
+void precalc() {
+  if(precalced)
+    return;
+  precalced = true;
+  
+    ll wb = binPow(g, (MOD - 1) / (1 << LOGN));
+    fore(st, 0, LOGN) {
+        w[st].assign(1 << st, 1);
+
+        ll bw = binPow(wb, 1 << (LOGN - st - 1));
+        ll cw = 1;
+
+        fore(k, 0, (1 << st)) {
+            w[st][k] = cw;
+            cw = mul(cw, bw);
+        }
+    }
+    
+    rv.assign(1 << LOGN, 0);
+    fore(i, 1, sz(rv))
+    rv[i] = (rv[i >> 1] >> 1) | ((i & 1) << (LOGN - 1));
+}
+
+const int MX = (1 << LOGN) + 3;
+
+inline void fft(ll a[MX], ll n, bool inverse) {
+  precalc();
+  
+   ll ln = __builtin_ctz(n);
+    assert((1 << ln) < MX);
+    assert((1 << ln) == n);
+
+    fore(i, 0, n) {
+        ll ni = rv[i] >> (LOGN - ln);
+        if(i < ni) swap(a[i], a[ni]);
+    }
+
+    for(ll st = 0; (1 << st) < n; st++) {
+        ll len = (1 << st);
+        for(ll k = 0; k < n; k += (len << 1)) {
+          fore(pos, k, k + len) {
+                ll l = a[pos];
+                ll r = mul(a[pos + len], w[st][pos - k]);
+
+                a[pos] = norm(l + r);
+                a[pos + len] = norm(l - r);
+            }
+        }
+    }
+    
+    if(inverse) {
+        ll in = inv(n);
+        fore(i, 0, n)
+            a[i] = mul(a[i], in);
+        reverse(a + 1, a + n);
+    }
+}
+
+ll aa[MX], bb[MX], cc[MX];
+
+vector<ll> multiply(const vector<ll> &a, const vector<ll> &b) {
+  ll ln = 1;
+  while(ln < (sz(a) + sz(b)))
+    ln <<= 1;
+  
+  fore(i, 0, ln)
+    aa[i] = (i < sz(a) ? a[i] : 0);
+  fore(i, 0, ln)
+    bb[i] = (i < sz(b) ? b[i] : 0);
+    
+  fft(aa, ln, false);
+  fft(bb, ln, false);
+  
+  fore(i, 0, ln)
+    cc[i] = mul(aa[i], bb[i]);
+  fft(cc, ln, true);
+  
+  vector<ll> ans(cc, cc + ln);
+  while(ans.back() == 0)
+    ans.pop_back();
+  return ans;
+}
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>ntt speed</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<!-- <scope>source.python</scope> -->
+</snippet>

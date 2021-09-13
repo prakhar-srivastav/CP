@@ -1,0 +1,44 @@
+<snippet>
+	<content><![CDATA[
+
+/*
+i and j is range where you want to find lis of array arr 
+l and r are the bound such that the resulting lis should be within these bounds.
+*/
+ll lis(vector<ll> & arr, ll i, ll j, ll l, ll r)
+{
+    vector<ll> dp;
+    ll x = 0; 
+     
+    for (ll ind = i; ind <= j; ind++)
+    {
+        if (arr[ind]<l || arr[ind]>r) continue; 
+        if (dp.size() == 0)
+        {
+            dp.pb(arr[ind]);
+            x++; 
+            continue; 
+        }
+        if (arr[ind] < dp[0]) dp[0] = arr[ind]; 
+        else if (arr[ind] >= dp[x-1])
+        {
+            dp.push_back(arr[ind]);
+            x++; 
+        }
+        else
+        {
+            ll temp = upper_bound(dp.begin(), dp.end(), arr[ind]) - dp.begin();
+            dp[temp] = arr[ind];
+        }
+ 
+    }
+   
+    return x; 
+}
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>lis</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<!-- <scope>source.python</scope> -->
+</snippet>
