@@ -1,0 +1,318 @@
+template<class S,
+	S(*op)(S, S),
+	S(*e)(),
+	class F,
+	S(*mapping)(F, S),
+	F(*composition)(F, F),
+	F(*id)()>
+	struct lazy_segtree {
+
+	private:
+		int s, _n;
+		vector<S> st;
+		vector<F> lt;
+		void construct(int pos, int l, int r, vector<S>& ind)
+		{
+
+			if (l == r)
+			{
+				st[pos] = ind[l];
+				return;
+			}
+			int mid = (l + r) / 2;
+			construct(pos * 2 + 1, l, mid, ind);
+			construct(pos * 2 + 2, mid + 1, r, ind);
+			st[pos] = op(st[pos * 2 + 1], st[pos * 2 + 2]);
+		}
+		void update(int i, int j, int l, int r, F val, int pos)
+		{
+
+			st[pos] = mapping(lt[pos], st[pos]);
+			if (l != r)
+			{
+				lt[pos * 2 + 1] = composition(lt[pos], lt[pos * 2 + 1]);
+				lt[pos * 2 + 2] = composition(lt[pos], lt[pos * 2 + 2]);
+			}
+			lt[pos] = id();
+
+
+
+			if (l > r || l > j || r < i)
+				return;
+
+			if (i <= l && j >= r)
+			{
+				st[pos] = mapping(val, st[pos]);
+				if (l != r)
+				{
+					lt[pos * 2 + 1] = composition(val, lt[pos * 2 + 1]);
+					lt[pos * 2 + 2] = composition(val, lt[pos * 2 + 2]);
+				}
+				return;
+			}
+			int mid = (l + r) / 2;
+			update(i, j, l, mid, val, 2 * pos + 1);
+			update(i, j, mid + 1, r, val, 2 * pos + 2);
+			st[pos] = op(st[pos * 2 + 1], st[pos * 2 + 2]);
+		}
+		void update(int i, int j, int l, int r, S val, int pos)
+		{
+
+
+			st[pos] = mapping(lt[pos], st[pos]);
+			if (l != r)
+			{
+				lt[pos * 2 + 1] = composition(lt[pos], lt[pos * 2 + 1]);
+				lt[pos * 2 + 2] = composition(lt[pos], lt[pos * 2 + 2]);
+			}
+			lt[pos] = id();
+
+
+
+			if (l > r || l > j || r < i)
+				return;
+
+			if (l == r)
+			{
+				st[pos] = val;
+				return;
+			}
+
+
+			int mid = (l + r) / 2;
+			update(i, j, l, mid, val, 2 * pos + 1);
+			update(i, j, mid + 1, r, val, 2 * pos + 2);
+			st[pos] = op(st[pos * 2 + 1], st[pos * 2 + 2]);
+		}
+		S query(int i, int j, int l, int r, int pos)
+		{
+			st[pos] = mapping(lt[pos], st[pos]);
+			if (l != r)
+			{
+				lt[pos * 2 + 1] = composition(lt[pos], lt[pos * 2 + 1]);
+				lt[pos * 2 + 2] = composition(lt[pos], lt[pos * 2 + 2]);
+			}
+			lt[pos] = id();
+
+
+			if (l > r || l > j || r < i)
+				return e();
+			if (i <= l && j >= r)
+				return st[pos];
+			int mid = (l + r) / 2;
+			return  op(query(i, j, l, mid, pos * 2 + 1), query(i, j, mid + 1, r, pos * 2 + 2));
+
+		}
+
+		/*
+		* bs() will function as follows:-
+		* For a range (l,r)
+		* we will consider following terms:
+		* op(l,l), op(l,l+1), op(l,l+2).... op(l,l+r)
+		* [True,True,False,False...False]
+		* It will then return the index on which first false value occurs
+		*/
+		void bs(int i, int j, int l, int r, int pos, bool(*fun)(S), int& ans)
+		{
+			assert(l >= 0 && l < _n);
+			assert(r >= 0 && r < _n);
+			assert(r >= l);
+
+			st[pos] = mapping(lt[pos], st[pos]);
+			if (l != r)
+			{
+				lt[pos * 2 + 1] = composition(lt[pos], lt[pos * 2 + 1]);
+				lt[pos * 2 + 2] = composition(lt[pos], lt[pos * 2 + 2]);
+			}
+			lt[pos] = id();
+
+
+
+			if (l > r || l > j || r < i)
+				return;
+
+			if (l == r)
+			{
+				if (fun(st[pos]) == false)
+
+				{
+				
+					ans = min(ans, r);
+				}
+				return;
+			}
+
+			if (i <= l && j >= r)
+			{
+				if (fun(st[pos]) == false)
+				{
+					 
+					ans = min(ans, r);
+
+					int mid = (l + r) / 2;
+					
+					if (fun(mapping(lt[pos*2+1],st[pos*2+1])) == false)
+					{
+						bs(i, j, l, mid, 2 * pos + 1, fun, ans);
+					}
+					else if (fun(mapping(lt[pos * 2 + 2], st[pos * 2 + 2])) == false) bs(i, j, mid + 1, r, 2 * pos + 2, fun, ans);
+
+				}
+				return;
+			}
+
+
+			int mid = (l + r) / 2;
+			bs(i, j, l, mid, 2 * pos + 1, fun, ans);
+			bs(i, j, mid + 1, r, 2 * pos + 2, fun, ans);
+
+			return;
+		}
+		/*
+		* rbs() will function as follows:-
+		* For a range (l,r)
+		* we will consider following terms:
+		* op(l,r), op(l+1,r), op(l+3,r).... op(r,r)
+		* [False,False,True,True,True]
+		* It will then return the index on which last false value occurs
+		*/
+		void rbs(int i, int j, int l, int r, int pos, bool(*fun)(S), int& ans)
+		{
+			assert(l >= 0 && l < _n);
+			assert(r >= 0 && r < _n);
+			assert(r >= l);
+
+			st[pos] = mapping(lt[pos], st[pos]);
+			if (l != r)
+			{
+				lt[pos * 2 + 1] = composition(lt[pos], lt[pos * 2 + 1]);
+				lt[pos * 2 + 2] = composition(lt[pos], lt[pos * 2 + 2]);
+			}
+			lt[pos] = id();
+
+
+
+			if (l > r || l > j || r < i)
+				return;
+
+			if (l == r)
+			{
+				if (fun(st[pos]) == false)
+					ans = max(ans, l);
+				return;
+			}
+
+			if (i <= l && j >= r)
+			{
+				if (fun(st[pos]) == false)
+				{
+					ans = max(ans, l);
+
+					int mid = (l + r) / 2;
+					if (fun(mapping(lt[pos*2+2],st[pos*2+2])) == false) rbs(i, j, l, mid, 2 * pos + 2, fun, ans);
+					else if(fun(mapping(lt[pos * 2 + 1], st[pos * 2 + 1]))==false) rbs(i, j, mid + 1, r, 2 * pos + 1, fun, ans);
+
+				}
+				return;
+			}
+
+
+			int mid = (l + r) / 2;
+			rbs(i, j, mid + 1, r, 2 * pos + 2, fun, ans);
+			rbs(i, j, l, mid, 2 * pos + 1, fun, ans);
+
+
+			return;
+		}
+	public:
+		lazy_segtree() :lazy_segtree(0) {}
+		lazy_segtree(int n) : lazy_segtree(vector<S>(n, e())) {}
+		lazy_segtree(vector<S>& v) : _n(int(v.size())) {
+			assert(_n > 0);
+			int s = ceil(log2(_n));
+			s = pow(2, s + 1) - 1;
+			st.clear();
+			st.resize(s, e());
+			construct(0, 0, _n - 1, v);
+			lt.clear();
+			lt.resize(s, id());
+		}
+		void update(int i, F val)
+		{
+			assert(i >= 0 && i < _n);
+			update(i, i, 0, _n - 1, val, 0);
+		}
+		void set(int i, S val)
+		{
+			assert(i >= 0 && i < _n);
+			update(i, i, 0, _n - 1, val, 0);
+		}
+		void update(int i, int j, F val)
+		{
+			assert(i >= 0 && i < _n);
+			assert(i <= j && j >= 0 && j < _n);
+			update(i, j, 0, _n - 1, val, 0);
+		}
+		S query(int i)
+		{
+			assert(i >= 0 && i < _n);
+			return query(i, i, 0, _n - 1, 0);
+		}
+		S query(int i, int j)
+		{
+			assert(i >= 0 && i < _n);
+			assert(i <= j && j >= 0 && j < _n);
+			return query(i, j, 0, _n - 1, 0);
+		}
+		template<bool (*fun)(S)>int bs(int l, int r)
+		{
+			assert(l >= 0 && l < _n);
+			assert(r >= l && r >= 0 && r < _n);
+			assert(fun(e()) == true);
+			int ans = r + 1;
+			bs(l, r, 0, _n - 1, 0, fun, ans);
+			return ans;
+		}
+		template<bool (*fun)(S)>int rbs(int l, int r)
+		{
+			assert(l >= 0 && l < _n);
+			assert(r >= l && r >= 0 && r < _n);
+			assert(fun(e()) == true);
+			int ans = l - 1;
+			rbs(l, r, 0, _n - 1, 0, fun, ans);
+			return ans;
+		}
+
+};
+struct S
+{
+	ll sum, len; 
+};
+struct F
+{
+	ll a,b;
+};
+S op(S l, S r)
+{
+	return S{ l.sum+r.sum,l.len+r.len };
+}
+S e()
+{
+	return S{0,0};
+}
+S mapping(F l, S r)
+{
+	ll a = r.sum*l.a + r.len * l.b;
+	return S{ a,r.len };
+}
+F composition(F l, F r)
+{
+	ll a, b;
+	a = l.a * r.a;
+	b = l.a * r.b + l.b;
+	return F{ a,b };
+}
+F id() {
+	return F{1,0};
+}
+
