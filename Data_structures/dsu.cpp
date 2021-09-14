@@ -30,12 +30,12 @@ public:
 		if (rank[x] < rank[y])
 		{
 			arr[x] = y;
-			rank[y] += 1;
+			
 		}
 		else if (rank[x] > rank[y])
 		{
 			arr[y] = x;
-			rank[x] += 1;
+			
 		}
 		else
 		{
