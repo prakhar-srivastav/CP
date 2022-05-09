@@ -1,0 +1,184 @@
+//#pragma GCC optimize("Ofast,unroll-loops,no-stack-protector")
+#include <bits/stdc++.h>
+#include<set>
+using namespace std;
+#define ll long long
+#define endl '\n'
+#define pb push_back
+#define ff first
+#define ss second
+
+
+
+
+#define si(x) int(x.size())
+#define sum_all(a)     ( accumulate ((a).begin(), (a).end(), 0ll))
+#define mine(a)    (*min_element((a).begin(), (a).end()))
+#define maxe(a)    (*max_element((a).begin(), (a).end()))
+#define mini(a)    ( min_element((a).begin(), (a).end()) - (a).begin())
+#define maxi(a)    ( max_element((a).begin(), (a).end()) - (a).begin())
+
+struct node
+{
+    ll l, r;
+    vector<ll> q;
+};
+
+
+struct dsu
+{
+private:
+    ll _n;
+    ll c;
+    vector<ll> sz;
+    vector<ll> par;
+public:
+    dsu() : _n(0), c(0) {}
+    dsu(ll n) : _n(n) ,c(0)
+    {
+        sz.clear(); par.clear();
+        sz.resize(_n); par.resize(_n);
+        for (ll i = 0; i < _n; i++)
+        {
+            sz[i] = 1;
+            par[i] = i;
+        }
+
+
+
+    }
+    ll number()
+    {
+        return c;
+
+    }
+    ll parent(ll x)
+    {
+        if (x == par[x]) return x;
+        return par[x] = parent(par[x]);
+    }
+    bool same(ll x, ll y)
+    {
+        return (parent(x) == parent(y));
+    }
+    void join(ll x, ll y)
+    {
+        c++;
+        if (same(x, y)) return;
+
+        x = parent(x);
+        y = parent(y);
+        if (sz[x] > sz[y]) swap(x, y);
+        sz[y] += sz[x];
+        par[x] = y;
+    }
+
+    ll size(ll a)
+    {
+        a = parent(a);
+        return sz[a];
+    }
+
+};
+
+
+void solve()
+{
+    ll n, m;
+    cin >> n >> m;
+    vector<pair<ll, ll>> edge(m+1);
+    dsu d(n + 1);
+    for (ll i = 1; i <= m; i++)
+    {
+        ll x, y;
+        cin >> x >> y;
+        edge[i]={ x,y };
+    }
+
+    ll query;
+    cin >> query;
+    vector<pair<ll, pair<ll, ll>>> temp(query);
+    vector<ll>temp2(query);
+    for (ll i = 0; i < query; i++)
+        cin >> temp[i].ff >> temp[i].ss.ff >> temp[i].ss.ss;
+    for (ll i = 0; i < query; i++) temp2[i] = i;
+
+    queue<node> q;
+    vector<ll> ans(query,INT_MAX);
+    q.push(node{ 1,m,temp2 });
+    auto count = [&](ll a, ll b)
+    {
+        if (d.same(a, b)) return d.size(a);
+        else return d.size(a) + d.size(b);
+    };
+    auto min = [&](ll x, ll y)
+    {
+        if (x > y) swap(x, y);
+        return x;
+    };
+    while (!q.empty())
+    {
+        auto cur = q.front();
+        q.pop();
+        ll l = cur.l, r = cur.r;
+        auto vec = cur.q;
+        if (l > r) continue;
+        ll mid = (l + r) / 2;
+        if (d.number() <= mid)
+        {
+
+            while (d.number() <= mid)
+            {
+                ll i = d.number();
+                d.join(edge[i].first, edge[i].second);
+            }
+        }
+        else
+        {
+            d = dsu(n + 1);
+            while (d.number() <= mid)
+            {
+                ll i = d.number();
+                d.join(edge[i].first, edge[i].second);
+            }
+        }
+        vector<ll> left, right;
+        for (ll i = 0; i < si(vec); i++)
+        {
+            ll u = temp[vec[i]].ff;
+            ll v = temp[vec[i]].ss.ff;
+            ll z = temp[vec[i]].ss.ss;
+            if (count(u, v) >= z)
+            {
+                ans[vec[i]] = min(ans[vec[i]], mid);
+                left.pb(vec[i]);
+
+            }
+            else
+            {
+                right.pb(vec[i]);
+            }
+        }
+
+        q.push(node{ l,mid - 1,left });
+        q.push(node{ mid + 1,r,right });
+    }
+
+    for (ll i = 0; i < si(ans); i++)
+        cout << ans[i] << endl;
+
+}
+
+// vec size can be zero and edge case when r-l<=1 
+int main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+
+
+
+    //ll t; cin >> t; while (t--)
+    solve();
+
+}
