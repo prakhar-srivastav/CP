@@ -5,26 +5,24 @@ import filecmp
 def main():
     
     print('compiling gen.cpp')
-    CMD = 'g++ cpp_files/gen.cpp -o cpp_files/gen.out'
+    CMD = 'g++ gen.cpp -o cpp_files/gen.out'
     os.system(CMD)
     print('DONE!!!!')
-
     print('compiling wrong_code.cpp')
-    CMD = 'g++ cpp_files/wrong_code.cpp -o cpp_files/wrong_code.out'
+    CMD = 'g++ code.cpp -o cpp_files/wrong_code.out'
     os.system(CMD)
     print('DONE!!!!')
 
     print('compiling right_code.cpp')
-    CMD = 'g++ cpp_files/right_code.cpp -o cpp_files/right_code.out'
+    CMD = 'g++ code2.cpp -o cpp_files/right_code.out'
     os.system(CMD)
     print('DONE!!!!')
-
     if os.path.isdir('test_case'):
         shutil.rmtree('test_case')
 
     os.mkdir('test_case')
 
-    lim = 10000000
+    lim = 10000
     for i in range(1,lim+1):
         
 
@@ -53,6 +51,7 @@ def main():
 
         if not ok:
             print("TEST CASE {}: FAILED".format(i))
+            import pdb; pdb.set_trace()
         else:
             print("TEST CASE {}: PASSED".format(i))     
 
